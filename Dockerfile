@@ -13,21 +13,15 @@ COPY . .
 RUN bun run build
 
 # Production
-FROM base AS runner
+FROM oven/bun:1.3-slim AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
-
-# Create non-root user
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 mcp
 
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/data ./data
-
-USER mcp
 
 EXPOSE 3000
 
