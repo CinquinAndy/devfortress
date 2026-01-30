@@ -1,5 +1,4 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
-import { odcafService } from './services/odcaf.service.js'
 import {
 	executeFetch,
 	executeFilter,
@@ -9,12 +8,19 @@ import {
 	executeStats,
 	fetchToolDefinition,
 	filterToolDefinition,
-	formatStatsAsMarkdown,
 	listProvincesToolDefinition,
 	listTypesToolDefinition,
 	searchToolDefinition,
 	statsToolDefinition,
 } from './tools/index.js'
+import {
+	formatFacilityCard,
+	formatFilterResultsTable,
+	formatProvincesList,
+	formatSearchResultsCards,
+	formatStatsDashboard,
+	formatTypesList,
+} from './utils/widgets.js'
 
 export function createMcpServer(): McpServer {
 	const server = new McpServer({
@@ -23,10 +29,9 @@ export function createMcpServer(): McpServer {
 	})
 
 	// =============================================
-	// REQUIRED TOOLS FOR CHATGPT DEEP RESEARCH MODE
+	// SEARCH TOOL
 	// =============================================
 
-	// Search tool - finds facilities by query
 	server.registerTool(
 		searchToolDefinition.name,
 		{
@@ -35,28 +40,24 @@ export function createMcpServer(): McpServer {
 			inputSchema: searchToolDefinition.inputSchema,
 		},
 		async params => {
-			const result = await executeSearch(
-				params as {
-					query: string
-					maxResults?: number
-				}
-			)
-
-			// Format as table for better display
-			const content = odcafService.formatResultsAsTable(result)
+			const { query, maxResults } = params as { query: string; maxResults?: number }
+			const result = await executeSearch({ query, maxResults })
 
 			return {
 				content: [
 					{
 						type: 'text' as const,
-						text: content,
+						text: formatSearchResultsCards(result, query),
 					},
 				],
 			}
 		}
 	)
 
-	// Fetch tool - retrieves full facility details by ID
+	// =============================================
+	// FETCH TOOL
+	// =============================================
+
 	server.registerTool(
 		fetchToolDefinition.name,
 		{
@@ -71,7 +72,7 @@ export function createMcpServer(): McpServer {
 				content: [
 					{
 						type: 'text' as const,
-						text: result.content,
+						text: formatFacilityCard(result.facility),
 					},
 				],
 			}
@@ -79,10 +80,9 @@ export function createMcpServer(): McpServer {
 	)
 
 	// =============================================
-	// FILTER TOOLS
+	// FILTER TOOL
 	// =============================================
 
-	// Filter by province, city, type
 	server.registerTool(
 		filterToolDefinition.name,
 		{
@@ -91,29 +91,29 @@ export function createMcpServer(): McpServer {
 			inputSchema: filterToolDefinition.inputSchema,
 		},
 		async params => {
-			const result = await executeFilter(
-				params as {
-					province?: string
-					city?: string
-					facilityType?: string
-					limit?: number
-				}
-			)
-
-			const content = odcafService.formatResultsAsTable(result)
+			const { province, city, facilityType, limit } = params as {
+				province?: string
+				city?: string
+				facilityType?: string
+				limit?: number
+			}
+			const result = await executeFilter({ province, city, facilityType, limit })
 
 			return {
 				content: [
 					{
 						type: 'text' as const,
-						text: content,
+						text: formatFilterResultsTable(result, { province, city, facilityType }),
 					},
 				],
 			}
 		}
 	)
 
-	// List facility types
+	// =============================================
+	// LIST TYPES TOOL
+	// =============================================
+
 	server.registerTool(
 		listTypesToolDefinition.name,
 		{
@@ -124,20 +124,21 @@ export function createMcpServer(): McpServer {
 		async () => {
 			const result = await executeListTypes()
 
-			const content = ['**Available Facility Types:**', '', ...result.types.map(t => `- ${t}`)].join('\n')
-
 			return {
 				content: [
 					{
 						type: 'text' as const,
-						text: content,
+						text: formatTypesList(result.types),
 					},
 				],
 			}
 		}
 	)
 
-	// List provinces
+	// =============================================
+	// LIST PROVINCES TOOL
+	// =============================================
+
 	server.registerTool(
 		listProvincesToolDefinition.name,
 		{
@@ -148,19 +149,11 @@ export function createMcpServer(): McpServer {
 		async () => {
 			const result = await executeListProvinces()
 
-			const content = [
-				'**Provinces/Territories with Cultural Facilities:**',
-				'',
-				'| Code | Count |',
-				'| --- | --- |',
-				...result.provinces.map(p => `| ${p.code} | ${p.count.toLocaleString()} |`),
-			].join('\n')
-
 			return {
 				content: [
 					{
 						type: 'text' as const,
-						text: content,
+						text: formatProvincesList(result.provinces),
 					},
 				],
 			}
@@ -180,13 +173,12 @@ export function createMcpServer(): McpServer {
 		},
 		async () => {
 			const result = await executeStats()
-			const content = formatStatsAsMarkdown(result)
 
 			return {
 				content: [
 					{
 						type: 'text' as const,
-						text: content,
+						text: formatStatsDashboard(result),
 					},
 				],
 			}
