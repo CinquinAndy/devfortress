@@ -171,7 +171,7 @@ export function createMcpServer(): McpServer {
 				],
 				structuredContent: {
 					toolName: 'fetch',
-					facility: result.facility,
+					...result.facility,
 				},
 			} as any
 		}

@@ -34,10 +34,13 @@ export default function App() {
 
 	console.log('[App] Rendering with:', { toolOutput, metadata, theme })
 
-	// Prioritize metadata (_meta) over toolOutput (structuredContent)
-	const data = metadata || toolOutput
+	// Merge metadata (_meta) and toolOutput (structuredContent)
+	// We prioritize toolOutput because it contains the dynamic execution results
+	const data = { ...(metadata || {}), ...(toolOutput || {}) }
 
-	if (!data) {
+	console.log('[App] Resolved data:', data)
+
+	if (!data || Object.keys(data).length === 0) {
 		return (
 			<div style={{
 				display: 'flex',
@@ -68,7 +71,9 @@ export default function App() {
 	}
 
 	// Determine which component to render based on tool output
-	const toolName = data.toolName || data._toolName
+	const toolName = data.toolName || data._toolName || (toolOutput as any)?.toolName
+
+	console.log('[App] Resolved toolName:', toolName)
 
 	switch (toolName) {
 		case 'search':
