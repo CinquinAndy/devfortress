@@ -22,7 +22,7 @@ export const filterToolDefinition = {
 			.describe(
 				'Facility type (museum, gallery, library, theatre, heritage or historic site, community cultural centre, performing arts facility, archive)'
 			),
-		limit: z.number().default(50).describe('Maximum number of results (default: 50)'),
+		limit: z.coerce.number().default(50).describe('Maximum number of results (default: 50)'),
 	},
 	outputSchema: {
 		ids: z.array(z.number()),

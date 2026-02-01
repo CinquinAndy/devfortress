@@ -31,15 +31,6 @@ import {
 	formatTypesList,
 } from './utils/widgets.js'
 
-// Get widget URL (use PUBLIC_URL if set, otherwise construct from HOST:PORT)
-function getWidgetUrl(): string {
-	if (env.PUBLIC_URL) {
-		return `${env.PUBLIC_URL}/widget`
-	}
-	// For local development, use localhost
-	const host = env.HOST === '0.0.0.0' ? 'localhost' : env.HOST
-	return `http://${host}:${env.PORT}/widget`
-}
 
 // Get widget HTML for inlining in ChatGPT responses
 function getWidgetHtml(): string {
@@ -120,17 +111,18 @@ export function createMcpServer(): McpServer {
 			// ChatGPT Apps SDK: specify widget to display for this tool
 			_meta: {
 				'openai/outputTemplate': 'ui://widget/widget.html',
+				'openai/widgetCSP': {
+					connect_domains: [],
+					resource_domains: [],
+				},
+				'openai/widgetDomain':
+					env.PUBLIC_URL || `http://${env.HOST === '0.0.0.0' ? 'localhost' : env.HOST}:${env.PORT}`,
 			},
 		},
 		async params => {
 			const { query, maxResults } = params as { query: string; maxResults?: number }
 			const result = await executeSearch({ query, maxResults })
 
-			console.log(`[Widget] Tool called: search`)
-			console.log(`[Widget] Will render widget: ui://widget/widget.html`)
-			console.log(`[Widget] Structured content:`, JSON.stringify({ toolName: 'search', query, ...result }, null, 2))
-
-			// Return structured content - ChatGPT will load the widget from tool's outputTemplate
 			return {
 				content: [
 					{
@@ -143,7 +135,7 @@ export function createMcpServer(): McpServer {
 					query,
 					...result,
 				},
-			} as any // ChatGPT Apps SDK format - bypass MCP SDK type checking
+			} as any
 		}
 	)
 
@@ -159,6 +151,12 @@ export function createMcpServer(): McpServer {
 			inputSchema: fetchToolDefinition.inputSchema,
 			_meta: {
 				'openai/outputTemplate': 'ui://widget/widget.html',
+				'openai/widgetCSP': {
+					connect_domains: [],
+					resource_domains: [],
+				},
+				'openai/widgetDomain':
+					env.PUBLIC_URL || `http://${env.HOST === '0.0.0.0' ? 'localhost' : env.HOST}:${env.PORT}`,
 			},
 		},
 		async params => {
@@ -170,25 +168,10 @@ export function createMcpServer(): McpServer {
 						type: 'text' as const,
 						text: formatFacilityCard(result.facility),
 					},
-					{
-						type: 'resource' as const,
-						resource: {
-							uri: getWidgetUrl(),
-							mimeType: 'text/html+skybridge',
-						},
-					} as any,
 				],
 				structuredContent: {
 					toolName: 'fetch',
 					facility: result.facility,
-				},
-				_meta: {
-					'openai/widgetCSP': {
-						connect_domains: [],
-						resource_domains: [],
-					},
-					'openai/widgetDomain':
-						env.PUBLIC_URL || `http://${env.HOST === '0.0.0.0' ? 'localhost' : env.HOST}:${env.PORT}`,
 				},
 			} as any
 		}
@@ -206,6 +189,12 @@ export function createMcpServer(): McpServer {
 			inputSchema: filterToolDefinition.inputSchema,
 			_meta: {
 				'openai/outputTemplate': 'ui://widget/widget.html',
+				'openai/widgetCSP': {
+					connect_domains: [],
+					resource_domains: [],
+				},
+				'openai/widgetDomain':
+					env.PUBLIC_URL || `http://${env.HOST === '0.0.0.0' ? 'localhost' : env.HOST}:${env.PORT}`,
 			},
 		},
 		async params => {
@@ -223,26 +212,11 @@ export function createMcpServer(): McpServer {
 						type: 'text' as const,
 						text: formatFilterResultsTable(result, { province, city, facilityType }),
 					},
-					{
-						type: 'resource' as const,
-						resource: {
-							uri: getWidgetUrl(),
-							mimeType: 'text/html+skybridge',
-						},
-					} as any,
 				],
 				structuredContent: {
 					toolName: 'filter',
 					filters: { province, city, facilityType },
 					...result,
-				},
-				_meta: {
-					'openai/widgetCSP': {
-						connect_domains: [],
-						resource_domains: [],
-					},
-					'openai/widgetDomain':
-						env.PUBLIC_URL || `http://${env.HOST === '0.0.0.0' ? 'localhost' : env.HOST}:${env.PORT}`,
 				},
 			} as any
 		}
@@ -268,25 +242,10 @@ export function createMcpServer(): McpServer {
 						type: 'text' as const,
 						text: formatTypesList(result.types),
 					},
-					{
-						type: 'resource' as const,
-						resource: {
-							uri: getWidgetUrl(),
-							mimeType: 'text/html+skybridge',
-						},
-					} as any,
 				],
 				structuredContent: {
 					toolName: 'list_types',
 					types: result.types,
-				},
-				_meta: {
-					'openai/widgetCSP': {
-						connect_domains: [],
-						resource_domains: [],
-					},
-					'openai/widgetDomain':
-						env.PUBLIC_URL || `http://${env.HOST === '0.0.0.0' ? 'localhost' : env.HOST}:${env.PORT}`,
 				},
 			} as any
 		}
@@ -312,25 +271,10 @@ export function createMcpServer(): McpServer {
 						type: 'text' as const,
 						text: formatProvincesList(result.provinces),
 					},
-					{
-						type: 'resource' as const,
-						resource: {
-							uri: getWidgetUrl(),
-							mimeType: 'text/html+skybridge',
-						},
-					} as any,
 				],
 				structuredContent: {
 					toolName: 'list_provinces',
 					provinces: result.provinces,
-				},
-				_meta: {
-					'openai/widgetCSP': {
-						connect_domains: [],
-						resource_domains: [],
-					},
-					'openai/widgetDomain':
-						env.PUBLIC_URL || `http://${env.HOST === '0.0.0.0' ? 'localhost' : env.HOST}:${env.PORT}`,
 				},
 			} as any
 		}
@@ -348,6 +292,12 @@ export function createMcpServer(): McpServer {
 			inputSchema: {},
 			_meta: {
 				'openai/outputTemplate': 'ui://widget/widget.html',
+				'openai/widgetCSP': {
+					connect_domains: [],
+					resource_domains: [],
+				},
+				'openai/widgetDomain':
+					env.PUBLIC_URL || `http://${env.HOST === '0.0.0.0' ? 'localhost' : env.HOST}:${env.PORT}`,
 			},
 		},
 		async () => {

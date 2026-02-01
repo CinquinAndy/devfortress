@@ -11,7 +11,7 @@ export const fetchToolDefinition = {
 	description:
 		'Fetch the complete details of a cultural facility by its ID. Returns full information including address, coordinates, and data source.',
 	inputSchema: {
-		id: z.number().describe('The facility ID returned from a search'),
+		id: z.coerce.number().describe('The facility ID returned from a search'),
 	},
 	outputSchema: {
 		id: z.number(),
