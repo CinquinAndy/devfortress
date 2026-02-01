@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Widget Test - ODCAF Cultural Facilities</title>
+	<style>
+		body {
+			margin: 0;
+			padding: 20px;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+			background: #f5f5f5;
+		}
+		.container {
+			max-width: 1200px;
+			margin: 0 auto;
+		}
+		.controls {
+			background: white;
+			padding: 20px;
+			border-radius: 8px;
+			margin-bottom: 20px;
+			box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+		}
+		.controls h2 {
+			margin-top: 0;
+		}
+		.control-group {
+			margin-bottom: 15px;
+		}
+		.control-group label {
+			display: block;
+			margin-bottom: 5px;
+			font-weight: 500;
+		}
+		.control-group select,
+		.control-group button {
+			padding: 8px 16px;
+			border-radius: 4px;
+			border: 1px solid #ddd;
+			font-size: 14px;
+		}
+		.control-group button {
+			background: #0066cc;
+			color: white;
+			border: none;
+			cursor: pointer;
+			margin-right: 10px;
+		}
+		.control-group button:hover {
+			background: #0052a3;
+		}
+		.widget-frame {
+			background: white;
+			border-radius: 8px;
+			box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+			overflow: hidden;
+		}
+		iframe {
+			width: 100%;
+			border: none;
+			min-height: 600px;
+		}
+		.info {
+			background: #e3f2fd;
+			padding: 15px;
+			border-radius: 4px;
+			margin-bottom: 20px;
+			border-left: 4px solid #2196f3;
+		}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<h1>🧪 Widget Test Environment</h1>
+		
+		<div class="info">
+			<strong>💡 Test Mode:</strong> Cette page simule l'environnement ChatGPT pour tester votre widget localement.
+		</div>
+
+		<div class="controls">
+			<h2>Contrôles de Test</h2>
+			
+			<div class="control-group">
+				<label>Thème:</label>
+				<select id="theme-select">
+					<option value="light">Light</option>
+					<option value="dark">Dark</option>
+				</select>
+			</div>
+
+			<div class="control-group">
+				<label>Test Data:</label>
+				<button onclick="loadSearchData()">🔍 Search Results</button>
+				<button onclick="loadFacilityData()">🏛️ Facility Details</button>
+				<button onclick="loadFilterData()">📊 Filter Results</button>
+				<button onclick="loadStatsData()">📈 Statistics</button>
+				<button onclick="loadTypesData()">🏷️ Types List</button>
+				<button onclick="loadProvincesData()">🗺️ Provinces List</button>
+			</div>
+
+			<div class="control-group">
+				<button onclick="reloadWidget()" style="background: #ff9800;">🔄 Reload Widget</button>
+			</div>
+		</div>
+
+		<div class="widget-frame">
+			<iframe id="widget-iframe" src="http://localhost:3000/widget"></iframe>
+		</div>
+	</div>
+
+	<script>
+		const iframe = document.getElementById('widget-iframe');
+		const themeSelect = document.getElementById('theme-select');
+
+		// Mock window.openai data
+		const mockData = {
+			search: {
+				toolName: 'search',
+				query: 'museum Toronto',
+				ids: [33, 134, 137, 288, 365, 768, 1803, 2048, 2098, 2127],
+				totalCount: 60,
+				preview: [
+					{ id: 33, name: '48th Highlanders Museum', type: 'museum', city: 'toronto', province: 'ON' },
+					{ id: 134, name: 'Aerospace Heritage Foundation of Canada', type: 'museum', city: 'etobicoke', province: 'ON' },
+					{ id: 137, name: 'Aga Khan Museum', type: 'museum', city: 'toronto', province: 'ON' },
+					{ id: 288, name: 'Anglican Church of Canada General Synod Archives', type: 'museum', city: 'toronto', province: 'ON' },
+					{ id: 768, name: 'Beth Tzedec Reuben And Helene Dennis Museum', type: 'museum', city: 'toronto', province: 'ON' }
+				]
+			},
+			facility: {
+				toolName: 'fetch',
+				id: 137,
+				name: 'Aga Khan Museum',
+				type: 'museum',
+				city: 'toronto',
+				province: 'ON',
+				address: '77 Wynford Drive',
+				postalCode: 'M3C 1K1',
+				phone: '416-646-4677',
+				website: 'www.agakhanmuseum.org'
+			},
+			filter: {
+				toolName: 'filter',
+				province: 'ON',
+				facilityType: 'museum',
+				totalCount: 856,
+				preview: [
+					{ id: 1, name: 'Museum A', type: 'museum', city: 'toronto', province: 'ON' },
+					{ id: 2, name: 'Museum B', type: 'museum', city: 'ottawa', province: 'ON' },
+					{ id: 3, name: 'Museum C', type: 'museum', city: 'hamilton', province: 'ON' }
+				]
+			},
+			stats: {
+				toolName: 'stats',
+				totalFacilities: 7972,
+				byType: {
+					'museum': 1938,
+					'gallery': 810,
+					'library or archives': 3013,
+					'theatre/performance and concert hall': 583
+				},
+				byProvince: {
+					'ON': 2286,
+					'QC': 2220,
+					'BC': 994,
+					'AB': 732
+				},
+				topCities: [
+					{ city: 'toronto, ON', count: 535 },
+					{ city: 'montréal, QC', count: 416 },
+					{ city: 'ottawa, ON', count: 376 }
+				]
+			},
+			types: {
+				toolName: 'list_types',
+				types: ['museum', 'gallery', 'library or archives', 'theatre/performance and concert hall', 
+					'heritage or historic site', 'festival site', 'art or cultural centre', 'artist']
+			},
+			provinces: {
+				toolName: 'list_provinces',
+				provinces: [
+					{ code: 'ON', count: 2286 },
+					{ code: 'QC', count: 2220 },
+					{ code: 'BC', count: 994 },
+					{ code: 'AB', count: 732 }
+				]
+			}
+		};
+
+		// Inject mock window.openai into iframe
+		function injectMockOpenAI(data, theme = 'light') {
+			iframe.contentWindow.postMessage({
+				type: 'SET_OPENAI_DATA',
+				toolOutput: data,
+				toolResponseMetadata: data,
+				theme: theme,
+				locale: 'en'
+			}, '*');
+		}
+
+		// Wait for iframe to load
+		iframe.addEventListener('load', () => {
+			console.log('Widget loaded, injecting mock data...');
+			
+			// Create a mock window.openai in the iframe
+			const iframeWindow = iframe.contentWindow;
+			iframeWindow.openai = {
+				toolOutput: mockData.search,
+				toolResponseMetadata: mockData.search,
+				theme: themeSelect.value,
+				locale: 'en',
+				notifyIntrinsicHeight: (height) => {
+					console.log('Widget height:', height);
+					iframe.style.height = height + 'px';
+				},
+				setWidgetState: (state) => {
+					console.log('Widget state updated:', state);
+				}
+			};
+
+			// Trigger initial load
+			setTimeout(() => {
+				iframeWindow.dispatchEvent(new Event('resize'));
+			}, 100);
+		});
+
+		// Theme change
+		themeSelect.addEventListener('change', () => {
+			const theme = themeSelect.value;
+			if (iframe.contentWindow.openai) {
+				iframe.contentWindow.openai.theme = theme;
+				iframe.contentWindow.dispatchEvent(new Event('resize'));
+			}
+		});
+
+		// Data loading functions
+		function loadSearchData() {
+			if (iframe.contentWindow.openai) {
+				iframe.contentWindow.openai.toolOutput = mockData.search;
+				iframe.contentWindow.openai.toolResponseMetadata = mockData.search;
+				iframe.contentWindow.dispatchEvent(new Event('resize'));
+			}
+		}
+
+		function loadFacilityData() {
+			if (iframe.contentWindow.openai) {
+				iframe.contentWindow.openai.toolOutput = mockData.facility;
+				iframe.contentWindow.openai.toolResponseMetadata = mockData.facility;
+				iframe.contentWindow.dispatchEvent(new Event('resize'));
+			}
+		}
+
+		function loadFilterData() {
+			if (iframe.contentWindow.openai) {
+				iframe.contentWindow.openai.toolOutput = mockData.filter;
+				iframe.contentWindow.openai.toolResponseMetadata = mockData.filter;
+				iframe.contentWindow.dispatchEvent(new Event('resize'));
+			}
+		}
+
+		function loadStatsData() {
+			if (iframe.contentWindow.openai) {
+				iframe.contentWindow.openai.toolOutput = mockData.stats;
+				iframe.contentWindow.openai.toolResponseMetadata = mockData.stats;
+				iframe.contentWindow.dispatchEvent(new Event('resize'));
+			}
+		}
+
+		function loadTypesData() {
+			if (iframe.contentWindow.openai) {
+				iframe.contentWindow.openai.toolOutput = mockData.types;
+				iframe.contentWindow.openai.toolResponseMetadata = mockData.types;
+				iframe.contentWindow.dispatchEvent(new Event('resize'));
+			}
+		}
+
+		function loadProvincesData() {
+			if (iframe.contentWindow.openai) {
+				iframe.contentWindow.openai.toolOutput = mockData.provinces;
+				iframe.contentWindow.openai.toolResponseMetadata = mockData.provinces;
+				iframe.contentWindow.dispatchEvent(new Event('resize'));
+			}
+		}
+
+		function reloadWidget() {
+			iframe.src = iframe.src;
+		}
+	</script>
+</body>
+</html>

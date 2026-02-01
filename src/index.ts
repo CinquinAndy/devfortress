@@ -233,13 +233,18 @@ app.get('/widget', (_req, res) => {
 </body>
 </html>`.trim()
 
-		// Set headers for ChatGPT Apps SDK
-		res.setHeader('Content-Type', 'text/html+skybridge')
+		// Set headers - use different Content-Type for browsers vs ChatGPT
+		// ChatGPT needs text/html+skybridge, browsers need text/html
+		const userAgent = _req.headers['user-agent'] || ''
+		const isChatGPT = userAgent.toLowerCase().includes('chatgpt') || userAgent.toLowerCase().includes('openai')
+		
+		const contentType = isChatGPT ? 'text/html+skybridge' : 'text/html'
+		res.setHeader('Content-Type', contentType)
 		res.setHeader('Access-Control-Allow-Origin', '*')
 		res.setHeader('Cache-Control', 'no-cache') // Avoid caching during development
 		res.send(html)
 
-		console.log('[Widget] Sent inlined HTML (length:', html.length, ')')
+		console.log('[Widget] Sent inlined HTML (length:', html.length, ') with Content-Type:', contentType)
 	} catch (error) {
 		console.error('[Widget] Error serving widget:', error)
 		res.status(500).send('Error loading widget')
@@ -250,6 +255,15 @@ app.get('/widget', (_req, res) => {
  * Serve widget static assets (JS, CSS)
  */
 app.use('/widget', express.static(join(rootDir, 'web', 'dist')))
+
+/**
+ * GET /test-widget.html - Serve the local test page
+ * This allows testing the widget without ChatGPT
+ */
+app.get('/test-widget.html', (_req, res) => {
+	res.sendFile(join(rootDir, 'web', 'test-widget.html'))
+})
+
 
 // =============================================
 // MCP SSE TRANSPORT (for OpenAI)

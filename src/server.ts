@@ -41,6 +41,36 @@ function getWidgetUrl(): string {
 	return `http://${host}:${env.PORT}/widget`
 }
 
+// Get widget HTML for inlining in ChatGPT responses
+function getWidgetHtml(): string {
+	const rootDir = process.cwd()
+	const jsPath = join(rootDir, 'web', 'dist', 'app.js')
+	const cssPath = join(rootDir, 'web', 'dist', 'app.css')
+
+	try {
+		const js = readFileSync(jsPath, 'utf-8')
+		const css = readFileSync(cssPath, 'utf-8')
+
+		return `<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>ODCAF Cultural Facilities</title>
+	<style>${css}</style>
+</head>
+<body>
+	<div id="root"></div>
+	<script type="module">${js}</script>
+</body>
+</html>`.trim()
+	} catch (error) {
+		console.error('[Widget] Failed to load widget HTML:', error)
+		return '<html><body><p>Widget build not found. Run: cd web && npm run build</p></body></html>'
+	}
+}
+
+
 // Note: getWidgetHtml() removed - we now use resource references instead
 
 export function createMcpServer(): McpServer {
@@ -53,26 +83,24 @@ export function createMcpServer(): McpServer {
 	// REGISTER WIDGET TEMPLATE RESOURCE
 	// =============================================
 	// Register the widget HTML template for ChatGPT Apps SDK
-	// ChatGPT will fetch this resource when tools return it in their responses
-	// The actual HTML is served via Express GET /widget endpoint
-	const widgetUrl = getWidgetUrl()
+	// ChatGPT requires the widget to be registered as a ui://widget resource
 	server.registerResource(
-		'widget-template',
-		widgetUrl,
+		'widget',
+		'ui://widget/widget.html',
 		{
 			title: 'ODCAF Facilities Widget',
 			description: 'Interactive widget for displaying Canadian cultural facilities',
 			mimeType: 'text/html+skybridge',
 		},
 		async () => {
-			// Return the widget template
-			// The HTML is served via Express /widget endpoint
+			// Return the widget HTML inline
+			const widgetHtml = getWidgetHtml()
 			return {
 				contents: [
 					{
-						uri: widgetUrl,
+						uri: 'ui://widget/widget.html',
 						mimeType: 'text/html+skybridge',
-						text: '', // HTML is served via Express static file serving
+						text: widgetHtml,
 					},
 				],
 			}
@@ -89,44 +117,31 @@ export function createMcpServer(): McpServer {
 			title: searchToolDefinition.title,
 			description: searchToolDefinition.description,
 			inputSchema: searchToolDefinition.inputSchema,
+			// ChatGPT Apps SDK: specify widget to display for this tool
+			_meta: {
+				'openai/outputTemplate': 'ui://widget/widget.html',
+			},
 		},
 		async params => {
 			const { query, maxResults } = params as { query: string; maxResults?: number }
 			const result = await executeSearch({ query, maxResults })
-			const widgetUrl = getWidgetUrl()
 
-			console.log(`[Widget] Returning widget for search: ${widgetUrl}`)
+			console.log(`[Widget] Tool called: search`)
+			console.log(`[Widget] Will render widget: ui://widget/widget.html`)
 			console.log(`[Widget] Structured content:`, JSON.stringify({ toolName: 'search', query, ...result }, null, 2))
 
-			// Return both text (for narration) and widget resource (for UI)
-			// For ChatGPT Apps SDK, we need to return the widget as a resource reference
-			// ChatGPT will load the widget from the registered resource
+			// Return structured content - ChatGPT will load the widget from tool's outputTemplate
 			return {
 				content: [
 					{
 						type: 'text' as const,
 						text: formatSearchResultsCards(result, query),
 					},
-					{
-						type: 'resource' as const,
-						resource: {
-							uri: widgetUrl,
-							mimeType: 'text/html+skybridge',
-						},
-					} as any,
 				],
 				structuredContent: {
 					toolName: 'search',
 					query,
 					...result,
-				},
-				_meta: {
-					'openai/widgetCSP': {
-						connect_domains: [],
-						resource_domains: [],
-					},
-					'openai/widgetDomain':
-						env.PUBLIC_URL || `http://${env.HOST === '0.0.0.0' ? 'localhost' : env.HOST}:${env.PORT}`,
 				},
 			} as any // ChatGPT Apps SDK format - bypass MCP SDK type checking
 		}
