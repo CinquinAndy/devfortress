@@ -7,6 +7,7 @@ const envSchema = z.object({
 	// Server
 	PORT: z.coerce.number().default(3000),
 	HOST: z.string().default('0.0.0.0'),
+	PUBLIC_URL: z.string().optional(), // Public URL for widget resources (e.g., https://odcaf.example.com)
 })
 
 export type Env = z.infer<typeof envSchema>

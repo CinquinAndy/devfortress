@@ -3,9 +3,17 @@ import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js'
 import express from 'express'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { dirname } from 'node:path'
 import { env } from './config/env.js'
 import { createMcpServer } from './server.js'
 import { odcafService } from './services/odcaf.service.js'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+const rootDir = join(__dirname, '..')
 
 const app = express()
 app.use(express.json())
@@ -174,6 +182,53 @@ app.get('/api/stats', (_req, res) => {
 		res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' })
 	}
 })
+
+// =============================================
+// WIDGET SERVING (for ChatGPT Apps SDK)
+// =============================================
+
+/**
+ * GET /widget - Serve the widget HTML template
+ * This is the template that ChatGPT will load in an iframe
+ */
+app.get('/widget', (_req, res) => {
+	try {
+		// Try to read the built widget HTML
+		const widgetPath = join(rootDir, 'web', 'dist', 'index.html')
+		let html: string
+
+		try {
+			html = readFileSync(widgetPath, 'utf-8')
+		} catch {
+			// Fallback: serve a basic HTML template that loads the widget
+			html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>ODCAF Cultural Facilities</title>
+	<link rel="stylesheet" href="/widget/app.css" />
+</head>
+<body>
+	<div id="root"></div>
+	<script type="module" src="/widget/app.js"></script>
+</body>
+</html>`
+		}
+
+		// Set Content-Type for ChatGPT Apps SDK
+		res.setHeader('Content-Type', 'text/html+skybridge')
+		res.send(html)
+	} catch (error) {
+		console.error('[Widget] Error serving widget:', error)
+		res.status(500).send('Error loading widget')
+	}
+})
+
+/**
+ * Serve widget static assets (JS, CSS)
+ */
+app.use('/widget', express.static(join(rootDir, 'web', 'dist')))
 
 // =============================================
 // MCP SSE TRANSPORT (for OpenAI)

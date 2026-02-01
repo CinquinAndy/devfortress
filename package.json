@@ -6,7 +6,11 @@
 	"type": "module",
 	"scripts": {
 		"dev": "bun --watch src/index.ts",
-		"build": "bun build src/index.ts --outdir dist --target node",
+		"dev:ngrok": "bash scripts/dev-with-ngrok.sh",
+		"dev:ngrok:ts": "bun scripts/dev-with-ngrok.ts",
+		"build": "bun run build:server && bun run build:widget",
+		"build:server": "bun build src/index.ts --outdir dist --target node",
+		"build:widget": "cd web && bun install && bun run build",
 		"start": "bun dist/index.js",
 		"lint": "biome check",
 		"format": "biome format --write",
