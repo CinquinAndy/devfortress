@@ -351,36 +351,34 @@ export function createMcpServer(): McpServer {
 			},
 		},
 		async () => {
-			const result = await executeStats()
+		const result = await executeStats()
 
-			return {
-				content: [
-					{
-						type: 'text' as const,
-						text: formatStatsDashboard(result),
-					},
-					{
-						type: 'resource' as const,
-						resource: {
-							uri: getWidgetUrl(),
-							mimeType: 'text/html+skybridge',
-						},
-					} as any,
-				],
-				structuredContent: {
-					toolName: 'stats',
-					...result,
+		// Transform data for widget: convert records to arrays
+		const byProvince = Object.entries(result.byProvince).map(([province, count]) => ({
+			province,
+			count,
+		}))
+
+		const byType = Object.entries(result.byType).map(([type, count]) => ({
+			type,
+			count,
+		}))
+
+		return {
+			content: [
+				{
+					type: 'text' as const,
+					text: formatStatsDashboard(result),
 				},
-				_meta: {
-					'openai/widgetCSP': {
-						connect_domains: [],
-						resource_domains: [],
-					},
-					'openai/widgetDomain':
-						env.PUBLIC_URL || `http://${env.HOST === '0.0.0.0' ? 'localhost' : env.HOST}:${env.PORT}`,
-				},
-			} as any
-		}
+			],
+			structuredContent: {
+				toolName: 'stats',
+				totalFacilities: result.totalFacilities,
+				byProvince, // Array format for widget
+				byType, // Array format for widget
+			},
+		} as any
+	}
 	)
 
 	return server
