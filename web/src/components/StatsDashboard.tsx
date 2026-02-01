@@ -5,6 +5,7 @@ interface Props {
 		byProvince?: Record<string, number>
 		topCities?: Array<{ city: string; count: number }>
 	}
+	theme?: 'light' | 'dark'
 }
 
 const TYPE_ICONS: Record<string, string> = {
@@ -61,7 +62,7 @@ function ProgressBar({ value, max, width = 15 }: { value: number; max: number; w
 	)
 }
 
-export function StatsDashboard({ data }: Props) {
+export function StatsDashboard({ data, theme = 'light' }: Props) {
 	const total = data.totalFacilities || 0
 	const byType = data.byType || {}
 	const byProvince = data.byProvince || {}
@@ -74,25 +75,31 @@ export function StatsDashboard({ data }: Props) {
 		.filter(([code]) => code !== '..')
 		.sort((a, b) => b[1] - a[1])
 
+	const bgClass = theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+	const textClass = theme === 'dark' ? 'text-white' : 'text-gray-900'
+	const textSecondaryClass = theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+	const borderClass = theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
+	const bgSecondaryClass = theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
+
 	return (
-		<div className="p-6 bg-white rounded-lg shadow-sm border border-gray-200 space-y-8">
+		<div className={`p-6 rounded-lg shadow-sm border space-y-8 ${bgClass} ${borderClass}`}>
 			{/* Header */}
-			<div className="text-center pb-6 border-b border-gray-200">
-				<h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center justify-center gap-2">
+			<div className={`text-center pb-6 border-b ${borderClass}`}>
+				<h1 className={`text-3xl font-bold mb-2 flex items-center justify-center gap-2 ${textClass}`}>
 					📊 ODCAF Cultural Facilities Dashboard
 				</h1>
-				<p className="text-gray-600">🇨🇦 Open Database of Cultural and Art Facilities - Canada</p>
+				<p className={textSecondaryClass}>🇨🇦 Open Database of Cultural and Art Facilities - Canada</p>
 			</div>
 
 			{/* Total */}
 			<div className="text-center">
 				<div className="text-4xl font-bold text-blue-600 mb-2">{total.toLocaleString()}</div>
-				<div className="text-lg text-gray-600">Total Facilities</div>
+				<div className={`text-lg ${textSecondaryClass}`}>Total Facilities</div>
 			</div>
 
 			{/* By Type */}
 			<div>
-				<h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">🏷️ By Facility Type</h2>
+				<h2 className={`text-xl font-semibold mb-4 flex items-center gap-2 ${textClass}`}>🏷️ By Facility Type</h2>
 				<div className="space-y-4">
 					{sortedTypes.map(([type, count]) => {
 						const icon = getTypeIcon(type)
@@ -102,9 +109,9 @@ export function StatsDashboard({ data }: Props) {
 								<div className="flex items-center justify-between">
 									<div className="flex items-center gap-2">
 										<span className="text-xl">{icon}</span>
-										<span className="font-semibold text-gray-900">{type}</span>
+										<span className={`font-semibold ${textClass}`}>{type}</span>
 									</div>
-									<span className="text-sm font-medium text-gray-600">
+									<span className={`text-sm font-medium ${textSecondaryClass}`}>
 										{count.toLocaleString()} ({pct}%)
 									</span>
 								</div>
@@ -117,14 +124,14 @@ export function StatsDashboard({ data }: Props) {
 
 			{/* By Province */}
 			<div>
-				<h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">🗺️ By Province/Territory</h2>
+				<h2 className={`text-xl font-semibold mb-4 flex items-center gap-2 ${textClass}`}>🗺️ By Province/Territory</h2>
 				<div className="overflow-x-auto">
 					<table className="w-full text-sm">
 						<thead>
-							<tr className="border-b border-gray-200">
-								<th className="text-left py-2 font-semibold text-gray-700">Province</th>
-								<th className="text-right py-2 font-semibold text-gray-700">Count</th>
-								<th className="text-right py-2 font-semibold text-gray-700">%</th>
+							<tr className={`border-b ${borderClass}`}>
+								<th className={`text-left py-2 font-semibold ${textSecondaryClass}`}>Province</th>
+								<th className={`text-right py-2 font-semibold ${textSecondaryClass}`}>Count</th>
+								<th className={`text-right py-2 font-semibold ${textSecondaryClass}`}>%</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -132,12 +139,12 @@ export function StatsDashboard({ data }: Props) {
 								const name = getProvinceName(code)
 								const pct = ((count / total) * 100).toFixed(1)
 								return (
-									<tr key={code} className="border-b border-gray-100">
-										<td className="py-2">
+									<tr key={code} className={`border-b ${borderClass}`}>
+										<td className={`py-2 ${textClass}`}>
 											🍁 {name} ({code})
 										</td>
-										<td className="text-right py-2 font-medium">{count.toLocaleString()}</td>
-										<td className="text-right py-2 text-gray-600">{pct}%</td>
+										<td className={`text-right py-2 font-medium ${textClass}`}>{count.toLocaleString()}</td>
+										<td className={`text-right py-2 ${textSecondaryClass}`}>{pct}%</td>
 									</tr>
 								)
 							})}
@@ -148,16 +155,16 @@ export function StatsDashboard({ data }: Props) {
 
 			{/* Top Cities */}
 			<div>
-				<h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">🏙️ Top 10 Cities</h2>
+				<h2 className={`text-xl font-semibold mb-4 flex items-center gap-2 ${textClass}`}>🏙️ Top 10 Cities</h2>
 				<div className="space-y-2">
 					{topCities.map((item, idx) => {
 						const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`
 						return (
-							<div key={item.city} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-								<span className="font-medium text-gray-900">
+							<div key={item.city} className={`flex items-center justify-between p-2 rounded ${bgSecondaryClass}`}>
+								<span className={`font-medium ${textClass}`}>
 									{medal} {item.city}
 								</span>
-								<span className="text-sm text-gray-600">{item.count.toLocaleString()} facilities</span>
+								<span className={`text-sm ${textSecondaryClass}`}>{item.count.toLocaleString()} facilities</span>
 							</div>
 						)
 					})}

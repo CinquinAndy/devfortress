@@ -17,6 +17,7 @@ interface Props {
 		facility?: Facility
 		id?: number
 	}
+	theme?: 'light' | 'dark'
 }
 
 const TYPE_ICONS: Record<string, string> = {
@@ -55,13 +56,18 @@ function getProvinceName(code: string): string {
 	return PROVINCE_NAMES[code] || code
 }
 
-export function FacilityCard({ data }: Props) {
+export function FacilityCard({ data, theme = 'light' }: Props) {
 	const facility = data.facility
+
+	const bgClass = theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+	const textClass = theme === 'dark' ? 'text-white' : 'text-gray-900'
+	const textSecondaryClass = theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+	const borderClass = theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
 
 	if (!facility) {
 		return (
-			<div className="p-6 bg-white rounded-lg shadow-sm border border-gray-200">
-				<p className="text-gray-600">Facility not found</p>
+			<div className={`p-6 rounded-lg shadow-sm border ${bgClass} ${borderClass}`}>
+				<p className={textSecondaryClass}>Facility not found</p>
 			</div>
 		)
 	}
@@ -75,12 +81,12 @@ export function FacilityCard({ data }: Props) {
 			: null
 
 	return (
-		<div className="p-6 bg-white rounded-lg shadow-sm border border-gray-200">
+		<div className={`p-6 rounded-lg shadow-sm border ${bgClass} ${borderClass}`}>
 			<div className="mb-6">
 				<div className="flex items-center gap-3 mb-2">
 					<span className="text-4xl">{icon}</span>
 					<div>
-						<h2 className="text-2xl font-bold text-gray-900">{facility.facilityName}</h2>
+						<h2 className={`text-2xl font-bold ${textClass}`}>{facility.facilityName}</h2>
 						<div className="mt-1">
 							<span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold">
 								{facility.odcafFacilityType.toUpperCase()}
@@ -93,27 +99,27 @@ export function FacilityCard({ data }: Props) {
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 				<div className="space-y-3">
 					<div>
-						<label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">City</label>
-						<p className="text-gray-900 font-medium">{facility.city}</p>
+						<label className={`text-xs font-semibold uppercase tracking-wide ${textSecondaryClass}`}>City</label>
+						<p className={`font-medium ${textClass}`}>{facility.city}</p>
 					</div>
 					<div>
-						<label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Province</label>
-						<p className="text-gray-900 font-medium">
+						<label className={`text-xs font-semibold uppercase tracking-wide ${textSecondaryClass}`}>Province</label>
+						<p className={`font-medium ${textClass}`}>
 							{provinceName} ({facility.provTerr})
 						</p>
 					</div>
 					{address && (
 						<div>
-							<label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Address</label>
-							<p className="text-gray-900 font-medium">{address}</p>
+							<label className={`text-xs font-semibold uppercase tracking-wide ${textSecondaryClass}`}>Address</label>
+							<p className={`font-medium ${textClass}`}>{address}</p>
 						</div>
 					)}
 					{facility.postalCode && facility.postalCode !== '..' && (
 						<div>
-							<label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+							<label className={`text-xs font-semibold uppercase tracking-wide ${textSecondaryClass}`}>
 								Postal Code
 							</label>
-							<p className="text-gray-900 font-medium font-mono">{facility.postalCode}</p>
+							<p className={`font-medium font-mono ${textClass}`}>{facility.postalCode}</p>
 						</div>
 					)}
 				</div>
@@ -121,10 +127,10 @@ export function FacilityCard({ data }: Props) {
 				<div className="space-y-3">
 					{facility.latitude && facility.longitude && (
 						<div>
-							<label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+							<label className={`text-xs font-semibold uppercase tracking-wide ${textSecondaryClass}`}>
 								Coordinates
 							</label>
-							<p className="text-gray-900 font-medium font-mono text-sm">
+							<p className={`font-medium font-mono text-sm ${textClass}`}>
 								{facility.latitude.toFixed(4)}, {facility.longitude.toFixed(4)}
 							</p>
 						</div>
@@ -143,15 +149,15 @@ export function FacilityCard({ data }: Props) {
 					)}
 					{facility.provider && (
 						<div>
-							<label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+							<label className={`text-xs font-semibold uppercase tracking-wide ${textSecondaryClass}`}>
 								Data Source
 							</label>
-							<p className="text-gray-900 font-medium text-sm">{facility.provider}</p>
+							<p className={`font-medium text-sm ${textClass}`}>{facility.provider}</p>
 						</div>
 					)}
 					<div>
-						<label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">ID</label>
-						<p className="text-gray-900 font-medium font-mono text-sm">{facility.index}</p>
+						<label className={`text-xs font-semibold uppercase tracking-wide ${textSecondaryClass}`}>ID</label>
+						<p className={`font-medium font-mono text-sm ${textClass}`}>{facility.index}</p>
 					</div>
 				</div>
 			</div>

@@ -1,5 +1,13 @@
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { env } from './config/env.js'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+const rootDir = join(__dirname, '..')
+
 import {
 	executeFetch,
 	executeFilter,
@@ -32,6 +40,8 @@ function getWidgetUrl(): string {
 	const host = env.HOST === '0.0.0.0' ? 'localhost' : env.HOST
 	return `http://${host}:${env.PORT}/widget`
 }
+
+// Note: getWidgetHtml() removed - we now use resource references instead
 
 export function createMcpServer(): McpServer {
 	const server = new McpServer({
@@ -83,8 +93,14 @@ export function createMcpServer(): McpServer {
 		async params => {
 			const { query, maxResults } = params as { query: string; maxResults?: number }
 			const result = await executeSearch({ query, maxResults })
+			const widgetUrl = getWidgetUrl()
 
-			// Return both text (for narration) and widget HTML (for UI)
+			console.log(`[Widget] Returning widget for search: ${widgetUrl}`)
+			console.log(`[Widget] Structured content:`, JSON.stringify({ toolName: 'search', query, ...result }, null, 2))
+
+			// Return both text (for narration) and widget resource (for UI)
+			// For ChatGPT Apps SDK, we need to return the widget as a resource reference
+			// ChatGPT will load the widget from the registered resource
 			return {
 				content: [
 					{
@@ -94,10 +110,10 @@ export function createMcpServer(): McpServer {
 					{
 						type: 'resource' as const,
 						resource: {
-							uri: getWidgetUrl(),
+							uri: widgetUrl,
 							mimeType: 'text/html+skybridge',
 						},
-					},
+					} as any,
 				],
 				structuredContent: {
 					toolName: 'search',
@@ -112,7 +128,7 @@ export function createMcpServer(): McpServer {
 					'openai/widgetDomain':
 						env.PUBLIC_URL || `http://${env.HOST === '0.0.0.0' ? 'localhost' : env.HOST}:${env.PORT}`,
 				},
-			}
+			} as any // ChatGPT Apps SDK format - bypass MCP SDK type checking
 		}
 	)
 
@@ -142,7 +158,7 @@ export function createMcpServer(): McpServer {
 							uri: getWidgetUrl(),
 							mimeType: 'text/html+skybridge',
 						},
-					},
+					} as any,
 				],
 				structuredContent: {
 					toolName: 'fetch',
@@ -156,7 +172,7 @@ export function createMcpServer(): McpServer {
 					'openai/widgetDomain':
 						env.PUBLIC_URL || `http://${env.HOST === '0.0.0.0' ? 'localhost' : env.HOST}:${env.PORT}`,
 				},
-			}
+			} as any
 		}
 	)
 
@@ -192,7 +208,7 @@ export function createMcpServer(): McpServer {
 							uri: getWidgetUrl(),
 							mimeType: 'text/html+skybridge',
 						},
-					},
+					} as any,
 				],
 				structuredContent: {
 					toolName: 'filter',
@@ -207,7 +223,7 @@ export function createMcpServer(): McpServer {
 					'openai/widgetDomain':
 						env.PUBLIC_URL || `http://${env.HOST === '0.0.0.0' ? 'localhost' : env.HOST}:${env.PORT}`,
 				},
-			}
+			} as any
 		}
 	)
 
@@ -237,7 +253,7 @@ export function createMcpServer(): McpServer {
 							uri: getWidgetUrl(),
 							mimeType: 'text/html+skybridge',
 						},
-					},
+					} as any,
 				],
 				structuredContent: {
 					toolName: 'list_types',
@@ -251,7 +267,7 @@ export function createMcpServer(): McpServer {
 					'openai/widgetDomain':
 						env.PUBLIC_URL || `http://${env.HOST === '0.0.0.0' ? 'localhost' : env.HOST}:${env.PORT}`,
 				},
-			}
+			} as any
 		}
 	)
 
@@ -281,7 +297,7 @@ export function createMcpServer(): McpServer {
 							uri: getWidgetUrl(),
 							mimeType: 'text/html+skybridge',
 						},
-					},
+					} as any,
 				],
 				structuredContent: {
 					toolName: 'list_provinces',
@@ -295,7 +311,7 @@ export function createMcpServer(): McpServer {
 					'openai/widgetDomain':
 						env.PUBLIC_URL || `http://${env.HOST === '0.0.0.0' ? 'localhost' : env.HOST}:${env.PORT}`,
 				},
-			}
+			} as any
 		}
 	)
 
@@ -325,7 +341,7 @@ export function createMcpServer(): McpServer {
 							uri: getWidgetUrl(),
 							mimeType: 'text/html+skybridge',
 						},
-					},
+					} as any,
 				],
 				structuredContent: {
 					toolName: 'stats',
@@ -339,7 +355,7 @@ export function createMcpServer(): McpServer {
 					'openai/widgetDomain':
 						env.PUBLIC_URL || `http://${env.HOST === '0.0.0.0' ? 'localhost' : env.HOST}:${env.PORT}`,
 				},
-			}
+			} as any
 		}
 	)
 

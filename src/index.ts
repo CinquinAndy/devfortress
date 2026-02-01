@@ -1,12 +1,11 @@
 import { randomUUID } from 'node:crypto'
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js'
 import express from 'express'
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { dirname } from 'node:path'
 import { env } from './config/env.js'
 import { createMcpServer } from './server.js'
 import { odcafService } from './services/odcaf.service.js'
@@ -190,35 +189,57 @@ app.get('/api/stats', (_req, res) => {
 /**
  * GET /widget - Serve the widget HTML template
  * This is the template that ChatGPT will load in an iframe
+ * IMPORTANT: Must inline JS and CSS for ChatGPT iframe to work
  */
 app.get('/widget', (_req, res) => {
+	console.log('[Widget] Widget requested by:', _req.headers['user-agent'])
 	try {
-		// Try to read the built widget HTML
-		const widgetPath = join(rootDir, 'web', 'dist', 'index.html')
-		let html: string
+		// Read the built widget JS and CSS files
+		const jsPath = join(rootDir, 'web', 'dist', 'app.js')
+		const cssPath = join(rootDir, 'web', 'dist', 'app.css')
+
+		let js: string
+		let css: string
 
 		try {
-			html = readFileSync(widgetPath, 'utf-8')
-		} catch {
-			// Fallback: serve a basic HTML template that loads the widget
-			html = `<!DOCTYPE html>
+			js = readFileSync(jsPath, 'utf-8')
+			css = readFileSync(cssPath, 'utf-8')
+			console.log('[Widget] Loaded built assets:', { jsSize: js.length, cssSize: css.length })
+		} catch (error) {
+			console.error('[Widget] Build files not found. Run: cd web && npm run build')
+			console.error('[Widget] Error:', error)
+			res
+				.status(500)
+				.send(
+					'Widget not built. Please run `npm run build` in /web directory.\n\n' +
+						`Expected files:\n- ${jsPath}\n- ${cssPath}`
+				)
+			return
+		}
+
+		// Create self-contained HTML with inlined JS and CSS
+		// This is critical for ChatGPT iframe - external scripts won't load
+		const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="UTF-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>ODCAF Cultural Facilities</title>
-	<link rel="stylesheet" href="/widget/app.css" />
+	<style>${css}</style>
 </head>
 <body>
 	<div id="root"></div>
-	<script type="module" src="/widget/app.js"></script>
+	<script type="module">${js}</script>
 </body>
-</html>`
-		}
+</html>`.trim()
 
-		// Set Content-Type for ChatGPT Apps SDK
+		// Set headers for ChatGPT Apps SDK
 		res.setHeader('Content-Type', 'text/html+skybridge')
+		res.setHeader('Access-Control-Allow-Origin', '*')
+		res.setHeader('Cache-Control', 'no-cache') // Avoid caching during development
 		res.send(html)
+
+		console.log('[Widget] Sent inlined HTML (length:', html.length, ')')
 	} catch (error) {
 		console.error('[Widget] Error serving widget:', error)
 		res.status(500).send('Error loading widget')

@@ -17,6 +17,7 @@ interface Props {
 			facilityType?: string
 		}
 	}
+	theme?: 'light' | 'dark'
 }
 
 const TYPE_ICONS: Record<string, string> = {
@@ -55,7 +56,7 @@ function getProvinceName(code: string): string {
 	return PROVINCE_NAMES[code] || code
 }
 
-export function FilterResults({ data }: Props) {
+export function FilterResults({ data, theme = 'light' }: Props) {
 	const filters = data.filters || {}
 	const preview = data.preview || []
 	const totalCount = data.totalCount || 0
@@ -65,24 +66,29 @@ export function FilterResults({ data }: Props) {
 	if (filters.city) filterDesc.push(`City: ${filters.city}`)
 	if (filters.facilityType) filterDesc.push(`Type: ${filters.facilityType}`)
 
+	const bgClass = theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+	const textClass = theme === 'dark' ? 'text-white' : 'text-gray-900'
+	const textSecondaryClass = theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+	const borderClass = theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
+
 	if (preview.length === 0) {
 		return (
-			<div className="p-6 bg-white rounded-lg shadow-sm border border-gray-200">
+			<div className={`p-6 rounded-lg shadow-sm border ${bgClass} ${borderClass}`}>
 				<div className="text-center py-8">
 					<div className="text-4xl mb-4">🎯</div>
-					<h2 className="text-xl font-semibold text-gray-900 mb-2">No Results Found</h2>
-					<p className="text-gray-600">No facilities match your filters</p>
+					<h2 className={`text-xl font-semibold mb-2 ${textClass}`}>No Results Found</h2>
+					<p className={textSecondaryClass}>No facilities match your filters</p>
 				</div>
 			</div>
 		)
 	}
 
 	return (
-		<div className="p-6 bg-white rounded-lg shadow-sm border border-gray-200">
+		<div className={`p-6 rounded-lg shadow-sm border ${bgClass} ${borderClass}`}>
 			<div className="mb-6">
-				<h2 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-2">🎯 Filtered Results</h2>
+				<h2 className={`text-2xl font-bold mb-2 flex items-center gap-2 ${textClass}`}>🎯 Filtered Results</h2>
 				{filterDesc.length > 0 && (
-					<p className="text-gray-600 mb-2">{filterDesc.join(' • ')}</p>
+					<p className={`mb-2 ${textSecondaryClass}`}>{filterDesc.join(' • ')}</p>
 				)}
 				<p className="text-gray-600">
 					<span className="font-semibold text-blue-600">{totalCount.toLocaleString()}</span> facilities found
@@ -101,6 +107,7 @@ export function FilterResults({ data }: Props) {
 								city={item.city}
 								province={item.province}
 								icon={getTypeIcon(item.type)}
+								theme={theme}
 							/>
 						</div>
 					</div>
@@ -108,8 +115,8 @@ export function FilterResults({ data }: Props) {
 			</div>
 
 			{totalCount > preview.length && (
-				<div className="mt-6 pt-4 border-t border-gray-200">
-					<p className="text-sm text-gray-500 text-center">
+				<div className={`mt-6 pt-4 border-t ${borderClass}`}>
+					<p className={`text-sm text-center ${textSecondaryClass}`}>
 						Showing {preview.length} of {totalCount.toLocaleString()} • Increase <code className="bg-gray-100 px-1 rounded">limit</code> for more
 					</p>
 				</div>
