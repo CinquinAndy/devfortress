@@ -157,6 +157,9 @@ export function createMcpServer(): McpServer {
 			title: fetchToolDefinition.title,
 			description: fetchToolDefinition.description,
 			inputSchema: fetchToolDefinition.inputSchema,
+			_meta: {
+				'openai/outputTemplate': 'ui://widget/widget.html',
+			},
 		},
 		async params => {
 			const result = await executeFetch(params as { id: number })
@@ -201,6 +204,9 @@ export function createMcpServer(): McpServer {
 			title: filterToolDefinition.title,
 			description: filterToolDefinition.description,
 			inputSchema: filterToolDefinition.inputSchema,
+			_meta: {
+				'openai/outputTemplate': 'ui://widget/widget.html',
+			},
 		},
 		async params => {
 			const { province, city, facilityType, limit } = params as {
@@ -340,6 +346,9 @@ export function createMcpServer(): McpServer {
 			title: statsToolDefinition.title,
 			description: statsToolDefinition.description,
 			inputSchema: {},
+			_meta: {
+				'openai/outputTemplate': 'ui://widget/widget.html',
+			},
 		},
 		async () => {
 			const result = await executeStats()

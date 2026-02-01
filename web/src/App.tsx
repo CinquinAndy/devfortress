@@ -1,9 +1,7 @@
-import { FacilityCard } from './components/FacilityCard'
+import { FacilityDetail } from './components/FacilityDetail'
 import { FilterResults } from './components/FilterResults'
-import { ProvincesList } from './components/ProvincesList'
 import { SearchResults } from './components/SearchResults'
-import { StatsDashboard } from './components/StatsDashboard'
-import { TypesList } from './components/TypesList'
+import { StatsWidget } from './components/StatsWidget'
 import { useDynamicHeight } from './hooks/useDynamicHeight'
 import { useOpenAiGlobal } from './hooks/useOpenAiGlobal'
 
@@ -37,16 +35,31 @@ export default function App() {
 	console.log('[App] Rendering with:', { toolOutput, metadata, theme })
 
 	// Prioritize metadata (_meta) over toolOutput (structuredContent)
-	// metadata contains full data for widget, toolOutput is minimal data for model
 	const data = metadata || toolOutput
 
 	if (!data) {
 		return (
-			<div className="flex items-center justify-center min-h-screen p-4">
-				<div className="text-center">
-					<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-					<p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>Loading cultural facilities data...</p>
-					<p className="text-xs text-gray-400 mt-2">
+			<div style={{
+				display: 'flex',
+				alignItems: 'center',
+				justifyContent: 'center',
+				minHeight: '100vh',
+				padding: '1rem',
+			}}>
+				<div style={{ textAlign: 'center' }}>
+					<div style={{
+						width: '2rem',
+						height: '2rem',
+						border: '2px solid #3b82f6',
+						borderTopColor: 'transparent',
+						borderRadius: '50%',
+						margin: '0 auto 1rem',
+						animation: 'spin 1s linear infinite',
+					}} />
+					<p style={{ color: theme === 'dark' ? '#d1d5db' : '#4b5563' }}>
+						Loading cultural facilities data...
+					</p>
+					<p style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '0.5rem' }}>
 						{window.openai ? 'Waiting for data...' : 'Widget runtime not available'}
 					</p>
 				</div>
@@ -61,23 +74,22 @@ export default function App() {
 		case 'search':
 			return <SearchResults data={data} theme={theme} />
 		case 'fetch':
-			return <FacilityCard data={data} theme={theme} />
+			return <FacilityDetail data={data} theme={theme} />
 		case 'filter':
 			return <FilterResults data={data} theme={theme} />
 		case 'stats':
-			return <StatsDashboard data={data} theme={theme} />
-		case 'list_types':
-			return <TypesList data={data} theme={theme} />
-		case 'list_provinces':
-			return <ProvincesList data={data} theme={theme} />
+			return <StatsWidget data={data} theme={theme} />
 		default:
 			return (
-				<div className="p-4">
-					<pre
-						className={`text-xs p-4 rounded overflow-auto ${
-							theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-900'
-						}`}
-					>
+				<div style={{ padding: '1rem' }}>
+					<pre style={{
+						fontSize: '0.75rem',
+						padding: '1rem',
+						borderRadius: '0.5rem',
+						overflow: 'auto',
+						backgroundColor: theme === 'dark' ? '#1f2937' : '#f3f4f6',
+						color: theme === 'dark' ? '#ffffff' : '#111827',
+					}}>
 						{JSON.stringify(data, null, 2)}
 					</pre>
 				</div>
