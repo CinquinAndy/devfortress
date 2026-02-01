@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import type { CSSProperties } from 'react'
 
 interface SearchResult {
 	ids: number[]
@@ -41,130 +41,107 @@ const TYPE_ICONS: Record<string, string> = {
 	miscellaneous: '📍',
 }
 
-const TYPE_COLORS: Record<string, { light: string; dark: string; bg: string; bgDark: string }> = {
-	museum: { light: 'text-purple-600', dark: 'text-purple-400', bg: 'bg-purple-50', bgDark: 'bg-purple-900/20' },
-	gallery: { light: 'text-pink-600', dark: 'text-pink-400', bg: 'bg-pink-50', bgDark: 'bg-pink-900/20' },
-	'library or archives': { light: 'text-blue-600', dark: 'text-blue-400', bg: 'bg-blue-50', bgDark: 'bg-blue-900/20' },
-	'theatre/performance and concert hall': { light: 'text-red-600', dark: 'text-red-400', bg: 'bg-red-50', bgDark: 'bg-red-900/20' },
-	'heritage or historic site': { light: 'text-amber-600', dark: 'text-amber-400', bg: 'bg-amber-50', bgDark: 'bg-amber-900/20' },
-	'festival site': { light: 'text-green-600', dark: 'text-green-400', bg: 'bg-green-50', bgDark: 'bg-green-900/20' },
-	'art or cultural centre': { light: 'text-indigo-600', dark: 'text-indigo-400', bg: 'bg-indigo-50', bgDark: 'bg-indigo-900/20' },
-	artist: { light: 'text-teal-600', dark: 'text-teal-400', bg: 'bg-teal-50', bgDark: 'bg-teal-900/20' },
-}
-
 function getTypeIcon(type: string): string {
 	return TYPE_ICONS[type.toLowerCase()] || '📍'
 }
 
-function getTypeColor(type: string, theme: 'light' | 'dark') {
-	const colors = TYPE_COLORS[type.toLowerCase()] || TYPE_COLORS['museum']
-	return theme === 'dark' ? colors.dark : colors.light
-}
-
-function getTypeBg(type: string, theme: 'light' | 'dark') {
-	const colors = TYPE_COLORS[type.toLowerCase()] || TYPE_COLORS['museum']
-	return theme === 'dark' ? colors.bgDark : colors.bg
-}
-
-function FacilityCard({ 
-	item, 
-	theme 
-}: { 
+function FacilityCard({
+	item,
+	theme,
+}: {
 	item: { id: number; name: string; type: string; city: string; province: string }
 	theme: 'light' | 'dark'
 }) {
-	const [isHovered, setIsHovered] = useState(false)
-	
-	const bgClass = theme === 'dark' ? 'bg-gray-800' : 'bg-white'
-	const borderClass = theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
-	const textClass = theme === 'dark' ? 'text-white' : 'text-gray-900'
-	const textSecondaryClass = theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-	const hoverBgClass = theme === 'dark' ? 'hover:bg-gray-750' : 'hover:bg-gray-50'
-	
-	const typeColor = getTypeColor(item.type, theme)
-	const typeBg = getTypeBg(item.type, theme)
-	
+	const isDark = theme === 'dark'
+
+	const cardStyle: CSSProperties = {
+		padding: '1.25rem',
+		borderRadius: '0.75rem',
+		border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
+		backgroundColor: isDark ? '#1f2937' : '#ffffff',
+		marginBottom: '1rem',
+		breakInside: 'avoid',
+		pageBreakInside: 'avoid',
+		transition: 'all 0.2s ease',
+		cursor: 'pointer',
+		boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+	}
+
+	const headerStyle: CSSProperties = {
+		display: 'flex',
+		alignItems: 'flex-start',
+		gap: '0.75rem',
+	}
+
+	const iconStyle: CSSProperties = {
+		fontSize: '2rem',
+		lineHeight: 1,
+	}
+
+	const contentStyle: CSSProperties = {
+		flex: 1,
+		minWidth: 0,
+	}
+
+	const titleStyle: CSSProperties = {
+		fontWeight: 700,
+		fontSize: '1rem',
+		lineHeight: 1.4,
+		marginBottom: '0.5rem',
+		color: isDark ? '#ffffff' : '#111827',
+	}
+
+	const badgeStyle: CSSProperties = {
+		display: 'inline-block',
+		padding: '0.25rem 0.5rem',
+		borderRadius: '0.375rem',
+		fontSize: '0.75rem',
+		fontWeight: 500,
+		backgroundColor: isDark ? '#1e3a8a' : '#dbeafe',
+		color: isDark ? '#93c5fd' : '#1e40af',
+		marginBottom: '0.75rem',
+	}
+
+	const locationContainerStyle: CSSProperties = {
+		display: 'flex',
+		alignItems: 'center',
+		gap: '0.5rem',
+		marginBottom: '0.5rem',
+	}
+
+	const locationTextStyle: CSSProperties = {
+		fontSize: '0.875rem',
+		fontWeight: 500,
+		textTransform: 'capitalize',
+		color: isDark ? '#d1d5db' : '#374151',
+	}
+
+	const idStyle: CSSProperties = {
+		fontSize: '0.75rem',
+		fontFamily: 'monospace',
+		color: isDark ? '#6b7280' : '#9ca3af',
+	}
+
 	return (
-		<div
-			className={`
-				group relative overflow-hidden rounded-xl border ${borderClass} ${bgClass}
-				transition-all duration-300 ease-out
-				${hoverBgClass}
-				${isHovered ? 'shadow-xl scale-[1.02]' : 'shadow-md'}
-				cursor-pointer break-inside-avoid mb-4
-			`}
-			onMouseEnter={() => setIsHovered(true)}
-			onMouseLeave={() => setIsHovered(false)}
-		>
-			{/* Gradient overlay */}
-			<div className={`absolute inset-0 bg-gradient-to-br ${typeBg} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
-			
-			<div className="relative p-5">
-				{/* Header with icon */}
-				<div className="flex items-start gap-3 mb-3">
-					<div className={`
-						text-3xl transition-transform duration-300
-						${isHovered ? 'scale-110 rotate-6' : 'scale-100'}
-					`}>
-						{getTypeIcon(item.type)}
+		<div style={cardStyle}>
+			<div style={headerStyle}>
+				<div style={iconStyle}>{getTypeIcon(item.type)}</div>
+
+				<div style={contentStyle}>
+					<h3 style={titleStyle}>{item.name}</h3>
+
+					<div>
+						<span style={badgeStyle}>{item.type}</span>
 					</div>
-					
-					<div className="flex-1 min-w-0">
-						<h3 className={`
-							font-bold text-lg leading-tight mb-1 ${textClass}
-							line-clamp-2 transition-colors duration-200
-						`}>
-							{item.name}
-						</h3>
-						
-						{/* Type badge */}
-						<div className="flex items-center gap-2 flex-wrap">
-							<span className={`
-								inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium
-								${typeBg} ${typeColor}
-								transition-all duration-200
-								${isHovered ? 'scale-105' : ''}
-							`}>
-								{item.type}
-							</span>
-						</div>
-					</div>
-				</div>
-				
-				{/* Location info */}
-				<div className="space-y-2 mt-4">
-					<div className="flex items-center gap-2">
-						<span className="text-lg">📍</span>
-						<div className="flex-1">
-							<p className={`text-sm font-medium ${textClass} capitalize`}>
-								{item.city}
-							</p>
-							<p className={`text-xs ${textSecondaryClass}`}>
-								{item.province}
-							</p>
-						</div>
-					</div>
-				</div>
-				
-				{/* Facility ID badge */}
-				<div className="mt-4 pt-3 border-t border-opacity-50" style={{ borderColor: 'currentColor', opacity: 0.1 }}>
-					<div className="flex items-center justify-between">
-						<span className={`text-xs font-mono ${textSecondaryClass}`}>
-							ID: {item.id}
+
+					<div style={locationContainerStyle}>
+						<span style={{ fontSize: '0.875rem' }}>📍</span>
+						<span style={locationTextStyle}>
+							{item.city}, {item.province}
 						</span>
-						
-						{/* Hover indicator */}
-						<div className={`
-							flex items-center gap-1 text-xs font-medium
-							transition-all duration-200
-							${isHovered ? `opacity-100 ${typeColor}` : 'opacity-0'}
-						`}>
-							View details
-							<svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-							</svg>
-						</div>
 					</div>
+
+					<div style={idStyle}>ID: {item.id}</div>
 				</div>
 			</div>
 		</div>
@@ -179,41 +156,101 @@ export function SearchResults({ data, theme = 'light' }: Props) {
 		query: data.query,
 	}
 
-	const bgClass = theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'
-	const textClass = theme === 'dark' ? 'text-white' : 'text-gray-900'
-	const textSecondaryClass = theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-	const borderClass = theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
-	const cardBgClass = theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+	const isDark = theme === 'dark'
+
+	const containerStyle: CSSProperties = {
+		minHeight: '100vh',
+		padding: '2rem',
+		backgroundColor: isDark ? '#111827' : '#f9fafb',
+	}
+
+	const maxWidthStyle: CSSProperties = {
+		maxWidth: '1280px',
+		margin: '0 auto',
+	}
+
+	const headerBoxStyle: CSSProperties = {
+		padding: '1.5rem',
+		borderRadius: '1rem',
+		boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+		backgroundColor: isDark ? '#1f2937' : '#ffffff',
+		border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
+		marginBottom: '2rem',
+	}
+
+	const headerTitleContainerStyle: CSSProperties = {
+		display: 'flex',
+		alignItems: 'center',
+		gap: '0.75rem',
+		marginBottom: '1rem',
+	}
+
+	const headerIconStyle: CSSProperties = {
+		fontSize: '2rem',
+	}
+
+	const headerTitleStyle: CSSProperties = {
+		fontSize: '1.5rem',
+		fontWeight: 700,
+		color: isDark ? '#ffffff' : '#111827',
+		margin: 0,
+	}
+
+	const headerTextStyle: CSSProperties = {
+		fontSize: '1rem',
+		color: isDark ? '#d1d5db' : '#4b5563',
+		margin: 0,
+	}
+
+	const countStyle: CSSProperties = {
+		fontWeight: 700,
+		color: '#3b82f6',
+	}
+
+	const masonryStyle: CSSProperties = {
+		columnCount: 'auto',
+		columnWidth: '300px',
+		columnGap: '1rem',
+	}
+
+	const footerStyle: CSSProperties = {
+		marginTop: '2rem',
+		padding: '1.5rem',
+		borderRadius: '1rem',
+		boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+		backgroundColor: isDark ? '#1f2937' : '#ffffff',
+		border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
+		textAlign: 'center',
+	}
+
+	const footerTextStyle: CSSProperties = {
+		fontSize: '1rem',
+		fontWeight: 500,
+		color: isDark ? '#ffffff' : '#111827',
+		margin: 0,
+	}
 
 	if (result.preview.length === 0) {
 		return (
-			<div className={`min-h-screen p-6 ${bgClass}`}>
-				<div className={`max-w-2xl mx-auto p-8 rounded-2xl shadow-lg border ${cardBgClass} ${borderClass}`}>
-					<div className="text-center py-12">
-						<div className="text-6xl mb-6 animate-bounce">🔍</div>
-						<h2 className={`text-2xl font-bold mb-3 ${textClass}`}>No Results Found</h2>
+			<div style={containerStyle}>
+				<div style={{ ...maxWidthStyle, maxWidth: '672px' }}>
+					<div style={{ ...headerBoxStyle, padding: '3rem', textAlign: 'center' }}>
+						<div style={{ fontSize: '4rem', marginBottom: '1.5rem' }}>🔍</div>
+						<h2
+							style={{
+								fontSize: '1.5rem',
+								fontWeight: 700,
+								marginBottom: '1rem',
+								color: isDark ? '#ffffff' : '#111827',
+							}}
+						>
+							No Results Found
+						</h2>
 						{result.query && (
-							<p className={`text-lg mb-6 ${textSecondaryClass}`}>
-								No facilities found matching <span className="font-semibold">"{result.query}"</span>
+							<p style={{ fontSize: '1.125rem', marginBottom: '2rem', color: isDark ? '#d1d5db' : '#4b5563' }}>
+								No facilities found matching <span style={{ fontWeight: 600 }}>"{result.query}"</span>
 							</p>
 						)}
-						<div className={`text-sm space-y-2 mt-8 ${textSecondaryClass}`}>
-							<p className="font-semibold text-base">💡 Try:</p>
-							<ul className="space-y-2 text-left max-w-md mx-auto">
-								<li className="flex items-start gap-2">
-									<span>•</span>
-									<span>Using broader search terms</span>
-								</li>
-								<li className="flex items-start gap-2">
-									<span>•</span>
-									<span>Checking spelling</span>
-								</li>
-								<li className="flex items-start gap-2">
-									<span>•</span>
-									<span>Searching by city or province code (ON, QC, BC...)</span>
-								</li>
-							</ul>
-						</div>
 					</div>
 				</div>
 			</div>
@@ -221,56 +258,39 @@ export function SearchResults({ data, theme = 'light' }: Props) {
 	}
 
 	return (
-		<div className={`min-h-screen p-6 ${bgClass}`}>
-			<div className="max-w-7xl mx-auto">
+		<div style={containerStyle}>
+			<div style={maxWidthStyle}>
 				{/* Header */}
-				<div className="mb-8 sticky top-0 z-10 pb-4" style={{ backdropFilter: 'blur(12px)' }}>
-					<div className={`p-6 rounded-2xl shadow-lg border ${cardBgClass} ${borderClass}`}>
-						<div className="flex items-center gap-3 mb-3">
-							<div className="text-3xl">🔍</div>
-							<h2 className={`text-3xl font-bold ${textClass}`}>
-								Search Results
-							</h2>
-						</div>
-						{result.query ? (
-							<p className={`text-lg ${textSecondaryClass}`}>
-								Found <span className="font-bold text-blue-500">{result.totalCount.toLocaleString()}</span>{' '}
-								facilities matching <span className="font-semibold">"{result.query}"</span>
-							</p>
-						) : (
-							<p className={`text-lg ${textSecondaryClass}`}>
-								Found <span className="font-bold text-blue-500">{result.totalCount.toLocaleString()}</span>{' '}
-								facilities
-							</p>
-						)}
+				<div style={headerBoxStyle}>
+					<div style={headerTitleContainerStyle}>
+						<div style={headerIconStyle}>🔍</div>
+						<h2 style={headerTitleStyle}>Search Results</h2>
 					</div>
+					<p style={headerTextStyle}>
+						Found <span style={countStyle}>{result.totalCount.toLocaleString()}</span>
+						{result.query && (
+							<>
+								{' '}
+								facilities matching <span style={{ fontWeight: 600 }}>"{result.query}"</span>
+							</>
+						)}
+						{!result.query && <> facilities</>}
+					</p>
 				</div>
 
 				{/* Masonry Grid */}
-				<div 
-					className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4"
-					style={{ columnGap: '1rem' }}
-				>
+				<div style={masonryStyle}>
 					{result.preview.map(item => (
-						<FacilityCard
-							key={item.id}
-							item={item}
-							theme={theme}
-						/>
+						<FacilityCard key={item.id} item={item} theme={theme} />
 					))}
 				</div>
 
 				{/* Footer */}
 				{result.totalCount > result.preview.length && (
-					<div className={`mt-8 p-6 rounded-2xl shadow-lg border ${cardBgClass} ${borderClass}`}>
-						<div className="text-center">
-							<p className={`text-base font-medium mb-2 ${textClass}`}>
-								📊 Showing {result.preview.length} of {result.totalCount.toLocaleString()} results
-							</p>
-							<p className={`text-sm ${textSecondaryClass}`}>
-								💡 Use <span className="font-semibold">filter</span> tool for more specific results
-							</p>
-						</div>
+					<div style={footerStyle}>
+						<p style={footerTextStyle}>
+							📊 Showing {result.preview.length} of {result.totalCount.toLocaleString()} results
+						</p>
 					</div>
 				)}
 			</div>
