@@ -14,7 +14,7 @@ interface FacilityData {
 }
 
 interface Props {
-	data: FacilityData
+	data: FacilityData | { facility: FacilityData }
 	theme?: 'light' | 'dark'
 }
 
@@ -35,6 +35,8 @@ function getTypeIcon(type: string): string {
 }
 
 export function FacilityDetail({ data, theme = 'light' }: Props) {
+	// Handle both formats: direct data or nested facility
+	const facility = 'facility' in data ? data.facility : data
 	const isDark = theme === 'dark'
 
 	const containerStyle: CSSProperties = {
@@ -143,12 +145,12 @@ export function FacilityDetail({ data, theme = 'light' }: Props) {
 				<div style={cardStyle}>
 					{/* Header */}
 					<div style={headerStyle}>
-						<div style={iconStyle}>{getTypeIcon(data.type)}</div>
+						<div style={iconStyle}>{getTypeIcon(facility.type)}</div>
 						<div style={{ flex: 1 }}>
-							<h1 style={titleStyle}>{data.name}</h1>
+							<h1 style={titleStyle}>{facility.name}</h1>
 							<div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
-								<span style={badgeStyle}>{data.type}</span>
-								<span style={idBadgeStyle}>ID: {data.id}</span>
+								<span style={badgeStyle}>{facility.type}</span>
+								<span style={idBadgeStyle}>ID: {facility.id}</span>
 							</div>
 						</div>
 					</div>
@@ -161,59 +163,59 @@ export function FacilityDetail({ data, theme = 'light' }: Props) {
 						</h2>
 						<div style={infoRowStyle}>
 							<span style={labelStyle}>City</span>
-							<span style={{ ...valueStyle, textTransform: 'capitalize' }}>{data.city}</span>
+							<span style={{ ...valueStyle, textTransform: 'capitalize' }}>{facility.city}</span>
 						</div>
 						<div style={infoRowStyle}>
 							<span style={labelStyle}>Province</span>
-							<span style={valueStyle}>{data.province}</span>
+							<span style={valueStyle}>{facility.province}</span>
 						</div>
-						{data.address && (
+						{facility.address && (
 							<div style={infoRowStyle}>
 								<span style={labelStyle}>Address</span>
-								<span style={valueStyle}>{data.address}</span>
+								<span style={valueStyle}>{facility.address}</span>
 							</div>
 						)}
-						{data.postalCode && (
+						{facility.postalCode && (
 							<div style={infoRowStyle}>
 								<span style={labelStyle}>Postal Code</span>
-								<span style={valueStyle}>{data.postalCode}</span>
+								<span style={valueStyle}>{facility.postalCode}</span>
 							</div>
 						)}
 					</div>
 
 					{/* Contact */}
-					{(data.phone || data.email || data.website) && (
+					{(facility.phone || facility.email || facility.website) && (
 						<div style={sectionStyle}>
 							<h2 style={sectionTitleStyle}>
 								<span>📞</span>
 								<span>Contact</span>
 							</h2>
-							{data.phone && (
+							{facility.phone && (
 								<div style={infoRowStyle}>
 									<span style={labelStyle}>Phone</span>
-									<a href={`tel:${data.phone}`} style={{ ...valueStyle, ...linkStyle }}>
-										{data.phone}
+									<a href={`tel:${facility.phone}`} style={{ ...valueStyle, ...linkStyle }}>
+										{facility.phone}
 									</a>
 								</div>
 							)}
-							{data.email && (
+							{facility.email && (
 								<div style={infoRowStyle}>
 									<span style={labelStyle}>Email</span>
-									<a href={`mailto:${data.email}`} style={{ ...valueStyle, ...linkStyle }}>
-										{data.email}
+									<a href={`mailto:${facility.email}`} style={{ ...valueStyle, ...linkStyle }}>
+										{facility.email}
 									</a>
 								</div>
 							)}
-							{data.website && (
+							{facility.website && (
 								<div style={infoRowStyle}>
 									<span style={labelStyle}>Website</span>
-									<a
-										href={data.website.startsWith('http') ? data.website : `https://${data.website}`}
+									<a 
+										href={facility.website.startsWith('http') ? facility.website : `https://${facility.website}`}
 										target="_blank"
 										rel="noopener noreferrer"
 										style={{ ...valueStyle, ...linkStyle }}
 									>
-										{data.website}
+										{facility.website}
 									</a>
 								</div>
 							)}
