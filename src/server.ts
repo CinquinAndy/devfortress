@@ -170,8 +170,18 @@ export function createMcpServer(): McpServer {
 					},
 				],
 				structuredContent: {
-					toolName: 'fetch',
+					// Spread raw data first
 					...result.facility,
+					// Standardized keys for widgets
+					toolName: 'fetch',
+					id: result.facility.index,
+					name: result.facility.facilityName,
+					type: result.facility.odcafFacilityType,
+					province: result.facility.provTerr,
+					address: ([result.facility.streetNo, result.facility.streetName].filter(Boolean).join(' ') || result.facility.sourceFormatAddress || ''),
+					// Add internal aliases just in case
+					_id: result.facility.index,
+					_name: result.facility.facilityName,
 				},
 			} as any
 		}

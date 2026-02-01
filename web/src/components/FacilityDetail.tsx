@@ -35,120 +35,131 @@ function getTypeIcon(type: string): string {
 }
 
 export function FacilityDetail({ data, theme = 'light' }: Props) {
-	// Handle both formats: direct data or nested facility
-	const facility = 'facility' in data ? data.facility : data
-	const isDark = theme === 'dark'
+	try {
+		// Handle both formats: direct data or nested facility
+		const rawFacility = 'facility' in data ? (data.facility as any) : (data as any)
+		const isDark = theme === 'dark'
 
-	const containerStyle: CSSProperties = {
-		minHeight: '100vh',
-		padding: '2rem',
-		backgroundColor: isDark ? '#111827' : '#f9fafb',
-	}
+		// Normalize data to handle both raw CSV keys and our widget keys
+		const facility = {
+			id: rawFacility.id ?? rawFacility.index ?? '???',
+			name: rawFacility.name ?? rawFacility.facilityName ?? 'Unknown Facility',
+			type: rawFacility.type ?? rawFacility.odcafFacilityType ?? 'miscellaneous',
+			city: rawFacility.city ?? 'Unknown City',
+			province: rawFacility.province ?? rawFacility.provTerr ?? '',
+			address: rawFacility.address ?? ([rawFacility.streetNo, rawFacility.streetName].filter(Boolean).join(' ') || rawFacility.sourceFormatAddress || ''),
+			postalCode: rawFacility.postalCode ?? '',
+			phone: rawFacility.phone ?? '',
+			email: rawFacility.email ?? '',
+			website: rawFacility.website ?? ''
+		}
 
-	const maxWidthStyle: CSSProperties = {
-		maxWidth: '800px',
-		margin: '0 auto',
-	}
+		console.log('[FacilityDetail] Rendering with normalized facility:', facility)
 
-	const cardStyle: CSSProperties = {
-		padding: '2rem',
-		borderRadius: '1rem',
-		boxShadow: '0 6px 12px rgba(0, 0, 0, 0.15)',
-		backgroundColor: isDark ? '#1f2937' : '#ffffff',
-		border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
-	}
+		const containerStyle: CSSProperties = {
+			padding: '1.5rem',
+			backgroundColor: isDark ? '#111827' : '#f9fafb',
+			borderRadius: '0.75rem',
+		}
 
-	const headerStyle: CSSProperties = {
-		display: 'flex',
-		gap: '1.5rem',
-		marginBottom: '2rem',
-		paddingBottom: '1.5rem',
-		borderBottom: `2px solid ${isDark ? '#374151' : '#e5e7eb'}`,
-	}
+		const cardStyle: CSSProperties = {
+			padding: '1.5rem',
+			borderRadius: '1rem',
+			boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+			backgroundColor: isDark ? '#1f2937' : '#ffffff',
+			border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
+		}
 
-	const iconStyle: CSSProperties = {
-		fontSize: '4rem',
-		lineHeight: 1,
-	}
+		const headerStyle: CSSProperties = {
+			display: 'flex',
+			gap: '1.5rem',
+			marginBottom: '1.5rem',
+			paddingBottom: '1rem',
+			borderBottom: `2px solid ${isDark ? '#374151' : '#e5e7eb'}`,
+		}
 
-	const titleStyle: CSSProperties = {
-		fontSize: '2rem',
-		fontWeight: 700,
-		color: isDark ? '#ffffff' : '#111827',
-		marginBottom: '0.5rem',
-		lineHeight: 1.2,
-	}
+		const iconStyle: CSSProperties = {
+			fontSize: '3rem',
+			lineHeight: 1,
+		}
 
-	const badgeStyle: CSSProperties = {
-		display: 'inline-block',
-		padding: '0.375rem 0.75rem',
-		borderRadius: '0.375rem',
-		fontSize: '0.875rem',
-		fontWeight: 600,
-		backgroundColor: isDark ? '#1e3a8a' : '#dbeafe',
-		color: isDark ? '#93c5fd' : '#1e40af',
-	}
+		const titleStyle: CSSProperties = {
+			fontSize: '1.5rem',
+			fontWeight: 700,
+			color: isDark ? '#ffffff' : '#111827',
+			marginBottom: '0.25rem',
+			lineHeight: 1.2,
+		}
 
-	const sectionStyle: CSSProperties = {
-		marginBottom: '1.5rem',
-	}
+		const badgeStyle: CSSProperties = {
+			display: 'inline-block',
+			padding: '0.25rem 0.5rem',
+			borderRadius: '0.375rem',
+			fontSize: '0.75rem',
+			fontWeight: 600,
+			backgroundColor: isDark ? '#1e3a8a' : '#dbeafe',
+			color: isDark ? '#93c5fd' : '#1e40af',
+		}
 
-	const sectionTitleStyle: CSSProperties = {
-		fontSize: '1.125rem',
-		fontWeight: 700,
-		color: isDark ? '#ffffff' : '#111827',
-		marginBottom: '0.75rem',
-		display: 'flex',
-		alignItems: 'center',
-		gap: '0.5rem',
-	}
+		const sectionStyle: CSSProperties = {
+			marginBottom: '1.25rem',
+		}
 
-	const infoRowStyle: CSSProperties = {
-		display: 'flex',
-		gap: '0.75rem',
-		marginBottom: '0.75rem',
-		alignItems: 'flex-start',
-	}
+		const sectionTitleStyle: CSSProperties = {
+			fontSize: '1rem',
+			fontWeight: 700,
+			color: isDark ? '#ffffff' : '#111827',
+			marginBottom: '0.5rem',
+			display: 'flex',
+			alignItems: 'center',
+			gap: '0.5rem',
+		}
 
-	const labelStyle: CSSProperties = {
-		fontSize: '0.875rem',
-		fontWeight: 600,
-		color: isDark ? '#9ca3af' : '#6b7280',
-		minWidth: '100px',
-	}
+		const infoRowStyle: CSSProperties = {
+			display: 'flex',
+			gap: '0.75rem',
+			marginBottom: '0.5rem',
+			alignItems: 'flex-start',
+		}
 
-	const valueStyle: CSSProperties = {
-		fontSize: '0.875rem',
-		color: isDark ? '#d1d5db' : '#374151',
-		flex: 1,
-	}
+		const labelStyle: CSSProperties = {
+			fontSize: '0.875rem',
+			fontWeight: 600,
+			color: isDark ? '#9ca3af' : '#6b7280',
+			minWidth: '100px',
+		}
 
-	const linkStyle: CSSProperties = {
-		color: '#3b82f6',
-		textDecoration: 'none',
-		fontWeight: 500,
-	}
+		const valueStyle: CSSProperties = {
+			fontSize: '0.875rem',
+			color: isDark ? '#d1d5db' : '#374151',
+			flex: 1,
+		}
 
-	const idBadgeStyle: CSSProperties = {
-		display: 'inline-block',
-		padding: '0.25rem 0.5rem',
-		borderRadius: '0.25rem',
-		fontSize: '0.75rem',
-		fontFamily: 'monospace',
-		backgroundColor: isDark ? '#374151' : '#f3f4f6',
-		color: isDark ? '#9ca3af' : '#6b7280',
-	}
+		const linkStyle: CSSProperties = {
+			color: '#3b82f6',
+			textDecoration: 'none',
+			fontWeight: 500,
+		}
 
-	return (
-		<div style={containerStyle}>
-			<div style={maxWidthStyle}>
+		const idBadgeStyle: CSSProperties = {
+			display: 'inline-block',
+			padding: '0.25rem 0.375rem',
+			borderRadius: '0.25rem',
+			fontSize: '0.75rem',
+			fontFamily: 'monospace',
+			backgroundColor: isDark ? '#374151' : '#f3f4f6',
+			color: isDark ? '#9ca3af' : '#6b7280',
+		}
+
+		return (
+			<div style={containerStyle}>
 				<div style={cardStyle}>
 					{/* Header */}
 					<div style={headerStyle}>
 						<div style={iconStyle}>{getTypeIcon(facility.type)}</div>
 						<div style={{ flex: 1 }}>
 							<h1 style={titleStyle}>{facility.name}</h1>
-							<div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+							<div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
 								<span style={badgeStyle}>{facility.type}</span>
 								<span style={idBadgeStyle}>ID: {facility.id}</span>
 							</div>
@@ -184,13 +195,13 @@ export function FacilityDetail({ data, theme = 'light' }: Props) {
 					</div>
 
 					{/* Contact */}
-					{(facility.phone || facility.email || facility.website) && (
+					{(facility.phone || facility.email || (facility.website && facility.website !== '..')) && (
 						<div style={sectionStyle}>
 							<h2 style={sectionTitleStyle}>
 								<span>📞</span>
 								<span>Contact</span>
 							</h2>
-							{facility.phone && (
+							{facility.phone && facility.phone !== '..' && (
 								<div style={infoRowStyle}>
 									<span style={labelStyle}>Phone</span>
 									<a href={`tel:${facility.phone}`} style={{ ...valueStyle, ...linkStyle }}>
@@ -198,7 +209,7 @@ export function FacilityDetail({ data, theme = 'light' }: Props) {
 									</a>
 								</div>
 							)}
-							{facility.email && (
+							{facility.email && facility.email !== '..' && (
 								<div style={infoRowStyle}>
 									<span style={labelStyle}>Email</span>
 									<a href={`mailto:${facility.email}`} style={{ ...valueStyle, ...linkStyle }}>
@@ -206,7 +217,7 @@ export function FacilityDetail({ data, theme = 'light' }: Props) {
 									</a>
 								</div>
 							)}
-							{facility.website && (
+							{facility.website && facility.website !== '..' && (
 								<div style={infoRowStyle}>
 									<span style={labelStyle}>Website</span>
 									<a 
@@ -223,6 +234,17 @@ export function FacilityDetail({ data, theme = 'light' }: Props) {
 					)}
 				</div>
 			</div>
-		</div>
-	)
+		)
+	} catch (err) {
+		console.error('[FacilityDetail] Rendering crash:', err)
+		return (
+			<div style={{ padding: '2rem', color: '#ef4444', backgroundColor: '#fee2e2', borderRadius: '0.5rem' }}>
+				<p style={{ fontWeight: 700 }}>Unable to render facility details.</p>
+				<p style={{ fontSize: '0.75rem', marginTop: '0.5rem' }}>{(err as Error).message}</p>
+				<pre style={{ fontSize: '0.65rem', marginTop: '1rem', overflow: 'auto' }}>
+					{JSON.stringify(data, null, 2)}
+				</pre>
+			</div>
+		)
+	}
 }
